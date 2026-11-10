@@ -1,0 +1,65 @@
+# Local small-model variant: only the 7 tools the base suite needs, short descriptions with example args.
+# Used with --tools artifacts/tools_local.yaml for v5-local. The cloud/main agent keeps artifacts/tools.yaml.
+tools:
+  - name: clarify
+    description: 'Ask the user a question. Missing account/URL: {"question": "Tài khoản nào?", "response_type": "text"}. Before posting: {"question": "Xác nhận gửi?", "response_type": "yes_no"}.'
+    parameters:
+      type: object
+      properties:
+        question: {type: string, description: "The question."}
+        response_type: {type: string, enum: [text, yes_no, choice], description: "text or yes_no."}
+      required: [question, response_type]
+
+  - name: timeline
+    description: 'Latest tweets BY one named account. Example: {"screenname": "sama", "limit": 5}.'
+    parameters:
+      type: object
+      properties:
+        screenname: {type: string, description: "Handle without @: sama, elonmusk, karpathy."}
+        limit: {type: integer, description: "How many tweets."}
+      required: [screenname]
+
+  - name: social_search
+    description: 'Tweets ABOUT a topic. Example: {"query": "GPT-5", "search_type": "Latest"}.'
+    parameters:
+      type: object
+      properties:
+        query: {type: string, description: "Topic word."}
+        search_type: {type: string, enum: [Latest, Top], description: "Top = popular."}
+      required: [query]
+
+  - name: lookup
+    description: 'Web news search. Example: {"query": "AI", "topic": "news", "timeframe": "day"}.'
+    parameters:
+      type: object
+      properties:
+        query: {type: string, description: "Topic word only."}
+        topic: {type: string, enum: [general, news], description: "news for tin tức."}
+        timeframe: {type: string, enum: [day, week, month, year], description: "day=hôm nay, week=tuần này."}
+      required: [query, topic]
+
+  - name: fetch
+    description: 'Read a URL the user gave. Example: {"url": "https://example.com/post"}.'
+    parameters:
+      type: object
+      properties:
+        url: {type: string, description: "Exact URL."}
+      required: [url]
+
+  - name: format
+    description: "Format already-collected items into a digest."
+    parameters:
+      type: object
+      properties:
+        items: {type: array, items: {type: object}, description: "Items."}
+        template: {type: string, enum: [brief, sections, bullets, thread, daily_ai_vn], description: "Layout."}
+      required: [items, template]
+
+  - name: send
+    description: 'Post to Telegram. Only after the user said yes: {"text": "...", "confirmed": true}.'
+    parameters:
+      type: object
+      properties:
+        text: {type: string, description: "Text to post."}
+        confirmed: {type: boolean, description: "true only after user confirmed."}
+      required: [text, confirmed]

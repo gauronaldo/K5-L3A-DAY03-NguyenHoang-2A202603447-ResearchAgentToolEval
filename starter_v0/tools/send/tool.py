@@ -8,8 +8,16 @@ import requests
 from tools._shared import TIMEOUT, err
 
 
+def _is_confirmed(confirmed: Any) -> bool:
+    # Bugfix: the starter used `if not confirmed`, so a model sending confirmed="false"
+    # (truthy string) actually posted. Only a real boolean True or the string "true" counts.
+    if confirmed is True:
+        return True
+    return isinstance(confirmed, str) and confirmed.strip().lower() == "true"
+
+
 def send_telegram(text: str = "", confirmed: bool = False) -> dict[str, Any]:
-    if not confirmed:
+    if not _is_confirmed(confirmed):
         return {
             "tool": "send_telegram",
             "status": "needs_confirmation",

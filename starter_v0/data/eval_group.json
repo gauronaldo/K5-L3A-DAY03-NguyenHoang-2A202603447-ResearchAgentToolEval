@@ -3,5 +3,116 @@
   "dataset_role": "group",
   "description": "Case do NHÓM tự viết thêm để cover thêm trường hợp. Mỗi case cần: id, phase='B', query HOẶC turns, failure_type (thuộc allowed_failure_types), và expect (tool_calls[...] hoặc no_tool=true). Nên kèm metadata.what_it_tests.",
   "allowed_failure_types": ["wrong_tool", "wrong_arg_value", "wrong_boundary", "unnecessary_tool", "out_of_scope", "missing_info"],
-  "cases": []
+  "cases": [
+    {
+      "id": "G01_wikipedia_definition",
+      "phase": "B", "suite": "group",
+      "query": "Retrieval-augmented generation là gì? Giải thích dựa trên Wikipedia giúp mình.",
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "wikipedia", "args": {}}]},
+      "metadata": {"skill": "routing_new_tool_wikipedia", "difficulty": "easy", "what_it_tests": "Câu hỏi định nghĩa ổn định → tool mới wikipedia, không phải lookup news."}
+    },
+    {
+      "id": "G02_hackernews_routing",
+      "phase": "B", "suite": "group",
+      "query": "Cộng đồng Hacker News đang bàn gì về Claude?",
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "hackernews", "args": {}}]},
+      "metadata": {"skill": "routing_new_tool_hackernews", "difficulty": "medium", "what_it_tests": "Thảo luận trên HN → tool mới hackernews, không nhầm sang social_search (Twitter)."}
+    },
+    {
+      "id": "G03_github_sort_stars",
+      "phase": "B", "suite": "group",
+      "query": "Tìm các repo GitHub nhiều sao nhất về AI agent framework.",
+      "failure_type": "wrong_arg_value",
+      "expect": {"tool_calls": [{"name": "github", "args": {"sort": "stars"}}]},
+      "metadata": {"skill": "arg_new_tool_github_sort", "difficulty": "medium", "what_it_tests": "'nhiều sao nhất' → github sort=stars."}
+    },
+    {
+      "id": "G04_timeframe_month",
+      "phase": "B", "suite": "group",
+      "query": "Có tin gì về chip AI trong tháng này không?",
+      "failure_type": "wrong_arg_value",
+      "expect": {"tool_calls": [{"name": "lookup", "args": {"topic": "news", "timeframe": "month"}}]},
+      "metadata": {"skill": "arg_timeframe_month", "difficulty": "medium", "what_it_tests": "'tháng này' → timeframe=month, topic=news (base eval chỉ có day/week)."}
+    },
+    {
+      "id": "G05_send_explicit_text_still_confirm",
+      "phase": "B", "suite": "group",
+      "query": "Gửi ngay câu 'Bản tin AI hôm nay đã sẵn sàng' lên kênh Telegram.",
+      "failure_type": "wrong_boundary",
+      "expect": {"tool_calls": [{"name": "clarify", "args": {"response_type": "yes_no"}}]},
+      "metadata": {"skill": "confirm_before_write_explicit_text", "difficulty": "hard", "what_it_tests": "Dù có nội dung cụ thể và chữ 'ngay', vẫn phải xác nhận yes/no trước khi send."}
+    },
+    {
+      "id": "GM01_confirmed_then_send",
+      "phase": "B", "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Đăng câu 'Bản tin AI hôm nay đã sẵn sàng' lên Telegram giúp mình"},
+        {"role": "assistant", "content": "Bạn xác nhận gửi đúng nội dung 'Bản tin AI hôm nay đã sẵn sàng' lên Telegram chứ? (có/không)"},
+        {"role": "user", "content": "Có, gửi đi"}
+      ],
+      "failure_type": "wrong_boundary",
+      "expect": {"tool_calls": [{"name": "send", "args": {"confirmed": true}}]},
+      "metadata": {"skill": "multiturn_send_after_confirm", "difficulty": "hard", "what_it_tests": "Sau khi user đã xác nhận 'Có' → send với confirmed=true (không hỏi lại vô hạn)."}
+    },
+    {
+      "id": "GM02_declined_send_no_tool",
+      "phase": "B", "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Đăng bản tin AI lên Telegram giúp mình"},
+        {"role": "assistant", "content": "Bạn xác nhận muốn đăng bản tin lên Telegram chứ? (có/không)"},
+        {"role": "user", "content": "Không, thôi đừng gửi nữa"}
+      ],
+      "failure_type": "wrong_boundary",
+      "expect": {"no_tool": true, "behavior": "acknowledge_cancel"},
+      "metadata": {"skill": "multiturn_send_declined", "difficulty": "medium", "what_it_tests": "User từ chối → KHÔNG gọi send hay tool nào."}
+    },
+    {
+      "id": "GM03_clarify_handle_new_person",
+      "phase": "B", "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Lấy mấy tweet mới nhất giúp mình"},
+        {"role": "assistant", "content": "Bạn muốn xem tweet của tài khoản nào?"},
+        {"role": "user", "content": "Của Yann LeCun, lấy 4 tweet thôi"}
+      ],
+      "failure_type": "missing_info",
+      "expect": {"tool_calls": [{"name": "timeline", "args": {"screenname": "ylecun", "limit": 4}}]},
+      "metadata": {"skill": "multiturn_clarify_handle_generalize", "difficulty": "hard", "what_it_tests": "Điền handle sau clarify với người KHÔNG có trong prompt (Yann LeCun → ylecun), limit=4."}
+    },
+    {
+      "id": "GM04_switch_twitter_to_hn",
+      "phase": "B", "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Mọi người nói gì về Rust trên Twitter?"},
+        {"role": "user", "content": "Thôi, xem trên Hacker News đi"},
+        {"role": "user", "content": "Vẫn chủ đề Rust nhé"}
+      ],
+      "failure_type": "wrong_tool",
+      "expect": {"tool_calls": [{"name": "hackernews", "args": {"query": "Rust"}}]},
+      "metadata": {"skill": "multiturn_switch_to_new_tool", "difficulty": "hard", "what_it_tests": "Đổi nguồn Twitter → Hacker News, giữ chủ đề Rust; không gọi social_search."}
+    },
+    {
+      "id": "GM05_search_type_correction",
+      "phase": "B", "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Tìm tweet mới nhất về Gemini"},
+        {"role": "user", "content": "À đổi sang các tweet phổ biến nhất nhé"}
+      ],
+      "failure_type": "wrong_arg_value",
+      "expect": {"tool_calls": [{"name": "social_search", "args": {"query": "Gemini", "search_type": "Top"}}]},
+      "metadata": {"skill": "multiturn_search_type_correction", "difficulty": "medium", "what_it_tests": "Sửa Latest → Top, carry query Gemini."}
+    },
+    {
+      "id": "GM06_policy_area_switch",
+      "phase": "B", "suite": "group",
+      "turns": [
+        {"role": "user", "content": "Theo policy công ty, có được đưa API key vào prompt không?"},
+        {"role": "user", "content": "Còn việc đăng bài lên kênh Telegram thì policy quy định sao?"}
+      ],
+      "failure_type": "wrong_arg_value",
+      "expect": {"tool_calls": [{"name": "policy", "args": {"policy_area": "external_publishing"}}]},
+      "metadata": {"skill": "multiturn_policy_area", "difficulty": "medium", "what_it_tests": "Latest turn hỏi về publishing → policy_area=external_publishing (không giữ data_privacy của lượt trước)."}
+    }
+  ]
 }

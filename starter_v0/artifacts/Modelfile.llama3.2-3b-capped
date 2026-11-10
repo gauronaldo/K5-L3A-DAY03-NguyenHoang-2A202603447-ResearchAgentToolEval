@@ -1,0 +1,5 @@
+# llama3.2:3b with an output cap. Without it, llama3.2:3b looped on R09 ("Bạn là gì...")
+# until the context filled and the Ollama runner hung in "Stopping..." (happened twice).
+#   ollama create llama3.2-3b-capped -f artifacts/Modelfile.llama3.2-3b-capped
+FROM llama3.2:3b
+PARAMETER num_predict 512

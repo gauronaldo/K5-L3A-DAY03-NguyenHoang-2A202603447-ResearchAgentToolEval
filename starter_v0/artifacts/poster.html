@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Research Agent Poster</title>
+<style>
+  :root {
+    --bg: #f6f5f1; --card: #ffffff; --ink: #1d1d1b; --muted: #5f5e58; --line: #e2e0d8;
+    --accent: #2f5d50; --accent-soft: #e3eeea; --new: #8a4b14; --new-soft: #f6eadc;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #161614; --card: #201f1c; --ink: #ecebe6; --muted: #a5a39b; --line: #34332e;
+      --accent: #8cc7b4; --accent-soft: #23342e; --new: #e5ad73; --new-soft: #3a2a1b;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #161614; --card: #201f1c; --ink: #ecebe6; --muted: #a5a39b; --line: #34332e;
+    --accent: #8cc7b4; --accent-soft: #23342e; --new: #e5ad73; --new-soft: #3a2a1b;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 1040px; margin: 0 auto; padding: 32px 16px 48px; }
+  header h1 { font-size: 30px; margin: 0 0 6px; letter-spacing: -0.01em; }
+  header p { margin: 0; color: var(--muted); max-width: 70ch; }
+  .grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 20px; margin-top: 24px; }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin: 0 0 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  td { padding: 6px 4px; border-top: 1px solid var(--line); vertical-align: top; }
+  tr:first-child td { border-top: 0; }
+  code { font: 13px ui-monospace, SFMono-Regular, Consolas, monospace; background: var(--accent-soft); color: var(--accent); padding: 1px 6px; border-radius: 5px; }
+  .new code { background: var(--new-soft); color: var(--new); }
+  .tag { font-size: 11px; color: var(--new); font-weight: 600; margin-left: 4px; }
+  ol { margin: 0; padding-left: 20px; } li { margin: 6px 0; }
+  .rules li { margin: 4px 0; }
+  .stats { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
+  .stat { flex: 1 1 120px; border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+  .stat b { display: block; font-size: 22px; }
+  .stat span { color: var(--muted); font-size: 12px; }
+  .full { grid-column: 1 / -1; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>🔎 Research Agent</h1>
+    <p>Agent nghiên cứu tin AI/tech: tìm tin theo chủ đề hoặc theo tài khoản, đọc URL, tra Wikipedia / Hacker News / GitHub / arXiv / policy nội bộ, trích dẫn nguồn có phân tier, và chỉ gửi Telegram sau khi bạn xác nhận. Thiếu thông tin thì hỏi lại, không đoán.</p>
+  </header>
+
+  <div class="grid">
+    <section>
+      <h2>14 tools</h2>
+      <table>
+        <tr><td><code>clarify</code></td><td>Hỏi lại khi thiếu account/URL, hoặc xác nhận yes/no trước khi gửi</td></tr>
+        <tr><td><code>timeline</code></td><td>Tweet mới nhất CỦA một tài khoản (Sam Altman → <code>sama</code>)</td></tr>
+        <tr><td><code>social_search</code></td><td>Tweet VỀ một chủ đề (Latest / Top)</td></tr>
+        <tr><td><code>lookup</code></td><td>Tìm web / tin tức (topic=news, timeframe day/week/month/year)</td></tr>
+        <tr><td><code>fetch</code></td><td>Đọc nội dung một URL cụ thể</td></tr>
+        <tr><td><code>format</code></td><td>Gom item thành bản tin markdown</td></tr>
+        <tr><td><code>send</code></td><td>Đăng Telegram, chỉ khi <code>confirmed=true</code></td></tr>
+        <tr><td><code>policy</code></td><td>Tra policy công ty (citation, privacy, publishing…)</td></tr>
+        <tr><td><code>papers</code> / <code>paper_text</code></td><td>Tìm paper arXiv / đọc text PDF</td></tr>
+        <tr class="new"><td><code>wikipedia</code><span class="tag">MỚI</span></td><td>Tóm tắt Wikipedia cho câu hỏi định nghĩa "X là gì"</td></tr>
+        <tr class="new"><td><code>hackernews</code><span class="tag">MỚI</span></td><td>Thảo luận trên Hacker News (cộng đồng dev)</td></tr>
+        <tr class="new"><td><code>github</code><span class="tag">MỚI</span></td><td>Tìm repo open-source, sort theo sao / mới cập nhật</td></tr>
+        <tr class="new"><td><code>cite</code><span class="tag">MỚI</span></td><td>Danh sách trích dẫn có Tier 1/2/3 theo citation policy</td></tr>
+      </table>
+    </section>
+
+    <section>
+      <h2>Thử ngay</h2>
+      <ol>
+        <li>Tin tức AI hôm nay có gì nổi bật?</li>
+        <li>Lấy 3 tweet mới nhất của Andrej Karpathy</li>
+        <li>Cộng đồng Hacker News đang bàn gì về Claude?</li>
+        <li>Retrieval-augmented generation là gì? Tra Wikipedia</li>
+        <li>Repo GitHub nhiều sao nhất về AI agent framework?</li>
+        <li>Tóm tắt 5 tweet mới nhất giúp mình <em>(→ agent hỏi lại: của ai?)</em></li>
+        <li>Đăng bản tin này lên Telegram <em>(→ agent xin xác nhận yes/no)</em></li>
+      </ol>
+      <h2 style="margin-top:18px">Guardrails</h2>
+      <ul class="rules">
+        <li>Không đoán handle / URL → <code>clarify</code></li>
+        <li>Không gửi khi chưa xác nhận; <code>confirmed="false"</code> dạng chuỗi cũng bị chặn</li>
+        <li>Toán / code / chit-chat → từ chối, không gọi tool</li>
+      </ul>
+    </section>
+
+    <section class="full">
+      <h2>Cách chạy</h2>
+      <p style="margin:0"><code>streamlit run app.py</code> → <code>cloudflared tunnel --url http://localhost:8501</code>. Provider: Ollama <code>qwen2.5:7b</code> chạy local (không cần key) hoặc OpenRouter nếu có <code>OPENROUTER_API_KEY</code>. Mỗi lượt chat được ghi vào <code>transcripts/*.transcript.json</code>.</p>
+    </section>
+  </div>
+</main>
+</body>
+</html>
