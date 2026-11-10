@@ -54,7 +54,7 @@ def available_providers() -> list[str]:
 st.set_page_config(page_title="Research Agent", page_icon="🔎", layout="wide")
 
 with st.sidebar:
-    st.header("⚙️ Cấu hình")
+    st.header("Cấu hình")
     provider_name = st.selectbox("Provider", available_providers())
     default_model = {"ollama": os.getenv("OLLAMA_MODEL", "qwen2.5:7b"), "openrouter": "openai/gpt-4o-mini"}.get(provider_name, "")
     model = st.text_input("Model", value=default_model) or None
@@ -67,17 +67,17 @@ with st.sidebar:
         for item in declarations:
             st.markdown(f"**`{item['name']}`** — {item.get('description', '').split('.')[0]}.")
 
-    if st.button("🧹 Cuộc hội thoại mới"):
+    if st.button(" Cuộc hội thoại mới"):
         for key in ("history", "messages", "transcript", "transcript_path"):
             st.session_state.pop(key, None)
         st.rerun()
 
-    st.subheader("💡 Câu hỏi mẫu")
+    st.subheader("Câu hỏi mẫu")
     for example in EXAMPLES:
         if st.button(example, key=f"ex_{example}", use_container_width=True):
             st.session_state["pending_prompt"] = example
 
-st.title("🔎 Research Agent")
+st.title("Research Agent")
 st.caption("Tìm tin theo chủ đề / theo tài khoản, đọc URL, tra Wikipedia / Hacker News / GitHub / arXiv / policy nội bộ, "
            "trích dẫn nguồn, và chỉ gửi Telegram khi bạn xác nhận.")
 

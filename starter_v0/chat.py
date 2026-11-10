@@ -174,6 +174,7 @@ def main() -> None:
         safe_slug(args.provider),
         timestamp,
     ])
+    
     transcript_path = args.transcripts_dir / f"{transcript_id}.transcript.json"
     transcript: dict[str, Any] = {
         "transcript_id": transcript_id,
