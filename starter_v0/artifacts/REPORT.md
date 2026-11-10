@@ -135,6 +135,12 @@ Transcript: `transcripts/v3.2_ollama_20261110T145431960071.transcript.json` (`ch
 | 4 | Đăng bản tin này lên Telegram giúp mình | (text) `Clarify {"question": "Bạn muốn đăng bản tin này lên kênh Telegram…?", "response_type": "yes_no"}` | v3.2 | **Không gửi**: xin xác nhận trước (đúng boundary, sai hình thức) |
 | 5 | Có, gửi đi | `send(confirmed=true, text="5 tweet mới nhất của Elon Musk:\n1. [Tweet 1]…")` | v3.2 | Gửi **sau** xác nhận. Không có Telegram token nên tool trả `RuntimeError`, agent báo lỗi. Rủi ro: nội dung là **placeholder do model bịa**, vì câu xác nhận không kèm đúng nội dung sẽ gửi |
 
+**UI (Streamlit):** `transcripts/v3-ui_ollama_ui_20261110T161845127945.transcript.json` (`app.py`, artifact `v3-ui+p4ed5f7dfb140+tf0a97fadd9a5`, cùng prompt/tools hash với v3.2; nhãn mặc định trong UI nay đổi thành `v3.2-ui`).
+
+| Turn | User Request | Tool Calls | Version Evidence | Outcome |
+|---|---|---|---|---|
+| UI-1 | Tin tức AI hôm nay có gì nổi bật? | `lookup(query="AI", topic="news", timeframe="day")` | v3.2 (hash) | Route + args **đúng**. Không có `TAVILY_API_KEY` nên tool trả `RuntimeError`, agent báo lỗi chứ không bịa tin. Lượt này mất ~6 phút (16:18:53 → 16:24:51) vì máy 7.4 GB RAM phải swap model 7B ra đĩa |
+
 ## B5. Bonus Evidence
 
 | Bonus | Evidence File | What Worked | Risk / Guardrail |
