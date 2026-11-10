@@ -32,15 +32,17 @@ PROVIDER_KEYS = {
     "anthropic": "ANTHROPIC_API_KEY",
     "gemini": "GEMINI_API_KEY",
 }
+# Demo examples only use tools that work without paid keys (no Tavily/Firecrawl/RapidAPI in this demo):
+# hackernews, wikipedia, github, papers, paper_text, policy, plus the clarify/confirm guardrails.
 EXAMPLES = [
-    "Tin tức AI hôm nay có gì nổi bật?",
-    "Lấy 3 tweet mới nhất của Andrej Karpathy",
-    "Mọi người đang bàn gì về GPT-5 trên Twitter?",
-    "Trên Hacker News đang nói gì về AI agents?",
+    "Cộng đồng Hacker News đang bàn gì về AI agents?",
     "Retrieval-augmented generation là gì? Tra Wikipedia giúp mình",
-    "Repo GitHub nhiều sao nhất về LLM agent framework?",
-    "Theo policy công ty, đăng bản tin lên Telegram có cần xác nhận không?",
+    "Repo GitHub nhiều sao nhất về RAG framework?",
+    "Tìm paper arXiv mới nhất về AI agent evaluation",
+    "Đọc giúp mình paper arXiv 1706.03762, lấy text trang đầu",
+    "Theo policy công ty, tweet viral có được coi là fact đã xác nhận không?",
     "Đăng bản tin này lên Telegram giúp mình",
+    "Giải giúp mình nguyên hàm của x^2",
 ]
 
 

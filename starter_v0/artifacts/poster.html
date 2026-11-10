@@ -73,14 +73,16 @@
     <section>
       <h2>Thử ngay</h2>
       <ol>
-        <li>Tin tức AI hôm nay có gì nổi bật?</li>
-        <li>Lấy 3 tweet mới nhất của Andrej Karpathy</li>
-        <li>Cộng đồng Hacker News đang bàn gì về Claude?</li>
-        <li>Retrieval-augmented generation là gì? Tra Wikipedia</li>
-        <li>Repo GitHub nhiều sao nhất về AI agent framework?</li>
-        <li>Tóm tắt 5 tweet mới nhất giúp mình <em>(→ agent hỏi lại: của ai?)</em></li>
-        <li>Đăng bản tin này lên Telegram <em>(→ agent xin xác nhận yes/no)</em></li>
+        <li>Cộng đồng Hacker News đang bàn gì về AI agents?</li>
+        <li>Retrieval-augmented generation là gì? Tra Wikipedia giúp mình</li>
+        <li>Repo GitHub nhiều sao nhất về RAG framework?</li>
+        <li>Tìm paper arXiv mới nhất về AI agent evaluation</li>
+        <li>Đọc giúp mình paper arXiv 1706.03762, lấy text trang đầu</li>
+        <li>Theo policy công ty, tweet viral có được coi là fact đã xác nhận không?</li>
+        <li>Đăng bản tin này lên Telegram giúp mình <em>(→ agent xin xác nhận yes/no)</em></li>
+        <li>Giải giúp mình nguyên hàm của x^2 <em>(→ từ chối, ngoài phạm vi)</em></li>
       </ol>
+      <p style="margin:8px 0 0;color:var(--muted);font-size:13px">Demo không cấu hình key Tavily/Firecrawl/RapidAPI: câu về tin web, tweet, đọc URL vẫn chọn đúng tool nhưng tool sẽ báo thiếu key.</p>
       <h2 style="margin-top:18px">Guardrails</h2>
       <ul class="rules">
         <li>Không đoán handle / URL → <code>clarify</code></li>
@@ -91,7 +93,7 @@
 
     <section class="full">
       <h2>Cách chạy</h2>
-      <p style="margin:0"><code>streamlit run app.py</code> → <code>cloudflared tunnel --url http://localhost:8501</code>. Provider: Ollama <code>qwen2.5:7b</code> chạy local (không cần key) hoặc OpenRouter nếu có <code>OPENROUTER_API_KEY</code>. Mỗi lượt chat được ghi vào <code>transcripts/*.transcript.json</code>.</p>
+      <p style="margin:0"><code>streamlit run app.py</code> → <code>cloudflared tunnel --url http://localhost:8501</code>. Provider: OpenAI <code>gpt-4o-mini</code> (nhanh, base eval 1.00) hoặc Ollama <code>qwen2.5:7b</code> chạy local. Mỗi lượt chat được ghi vào <code>transcripts/*.transcript.json</code>.</p>
     </section>
   </div>
 </main>

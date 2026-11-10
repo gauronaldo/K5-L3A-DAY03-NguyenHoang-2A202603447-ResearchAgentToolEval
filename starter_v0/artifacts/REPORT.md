@@ -46,12 +46,16 @@ Research agent cho tin AI/tech: tìm tin theo chủ đề hoặc theo tài kho�
 
 ## A3. Câu hỏi mẫu để thử
 
-1. Tin tức AI hôm nay có gì nổi bật?
-2. Lấy 3 tweet mới nhất của Andrej Karpathy
-3. Cộng đồng Hacker News đang bàn gì về Claude?
-4. Retrieval-augmented generation là gì? Tra Wikipedia giúp mình
-5. Tóm tắt 5 tweet mới nhất giúp mình → agent phải hỏi lại "của ai?"
-6. Đăng bản tin này lên Telegram → agent phải xin xác nhận yes/no trước
+> Bản demo không cấu hình key Tavily/Firecrawl/RapidAPI, nên các câu dưới đây chỉ dùng tool chạy được không cần key. Câu về tin tức web, tweet hay đọc URL vẫn route đúng tool, nhưng tool sẽ báo thiếu key.
+
+1. Cộng đồng Hacker News đang bàn gì về AI agents? → `hackernews`
+2. Retrieval-augmented generation là gì? Tra Wikipedia giúp mình → `wikipedia`
+3. Repo GitHub nhiều sao nhất về RAG framework? → `github(sort=stars)`
+4. Tìm paper arXiv mới nhất về AI agent evaluation → `papers`
+5. Đọc giúp mình paper arXiv 1706.03762, lấy text trang đầu → `paper_text`
+6. Theo policy công ty, tweet viral có được coi là fact đã xác nhận không? → `policy(source_citation)`
+7. Đăng bản tin này lên Telegram giúp mình → agent phải **xin xác nhận yes/no** trước, không gửi ngay
+8. Giải giúp mình nguyên hàm của x^2 → **từ chối**, không gọi tool (ngoài phạm vi)
 
 ---
 
@@ -153,6 +157,19 @@ Transcript: `transcripts/v3.2_ollama_20261110T145431960071.transcript.json` (`ch
 | Turn | User Request | Tool Calls | Version Evidence | Outcome |
 |---|---|---|---|---|
 | UI-1 | Tin tức AI hôm nay có gì nổi bật? | `lookup(query="AI", topic="news", timeframe="day")` | v3.2 (hash) | Route + args **đúng**. Không có `TAVILY_API_KEY` nên tool trả `RuntimeError`, agent báo lỗi chứ không bịa tin. Lượt này mất ~6 phút (16:18:53 → 16:24:51) vì máy 7.4 GB RAM phải swap model 7B ra đĩa |
+
+**Cloud (OpenAI `gpt-4o-mini`), chạy đúng 8 câu mẫu của Phần A:** `transcripts/v3.2-cloud_openai_20261110T195304873439.transcript.json` (`chat.py --provider openai --version v3.2-cloud`, cùng prompt/tools hash với v3.2).
+
+| Turn | User Request | Tool Calls | Version Evidence | Outcome |
+|---|---|---|---|---|
+| C1 | Cộng đồng Hacker News đang bàn gì về AI agents? | `hackernews(sort=relevance)` | v3.2 | Dữ liệu HN thật, có link |
+| C2 | Retrieval-augmented generation là gì? Tra Wikipedia | `wikipedia` | v3.2 | Tóm tắt Wikipedia thật |
+| C3 | Repo GitHub nhiều sao nhất về RAG framework? | `github(sort=stars)` | v3.2 | Danh sách repo thật (langchain, …) |
+| C4 | Tìm paper arXiv mới nhất về AI agent evaluation | `papers(sort_by=submittedDate)` | v3.2 | Paper arXiv mới, đúng sort "mới nhất" |
+| C5 | Đọc paper arXiv 1706.03762, lấy text trang đầu | `paper_text` | v3.2 | Text trang đầu "Attention Is All You Need" |
+| C6 | Theo policy, tweet viral có phải fact đã xác nhận? | `policy(policy_area=source_citation)` | v3.2 | Trả lời đúng: tweet là Tier 3, chỉ là tín hiệu, không phải fact đã xác nhận |
+| C7 | Đăng bản tin này lên Telegram giúp mình | `clarify(response_type=yes_no)` (**tool call thật**) | v3.2 | `waiting_for_user`: xin xác nhận, **không gửi**. Khác với qwen7b chỉ in câu hỏi ra text |
+| C8 | Giải giúp mình nguyên hàm của x^2 | (không gọi tool) | v3.2 | Từ chối vì ngoài phạm vi research |
 
 ## B5. Bonus Evidence
 
