@@ -118,7 +118,7 @@ Hai bước tăng lớn: **sửa prompt (+45 điểm)** và **sửa tool descrip
 | R11 | missing_info | text: "Tôi cần bạn cung cấp URL…" | Hành vi đúng, nhưng là text, không phải tool call | v2 / v3 / v3.1 / v3.2 đều không đổi |
 | R12 | wrong_boundary | text: `Clarify(response_type="yes_no")` | Chọn đúng tool + args nhưng **in lời gọi ra text** | v3: chép cú pháp ví dụ `clarify(question=…)`; v3.1: chép nguyên câu "invoke tool clarify with arguments {…}"; v3.2 (không còn ví dụ) vẫn ra text |
 
-Kết luận có bằng chứng: Ollama bỏ qua `tool_choice="required"`, và qwen2.5:7b đặc biệt hay "nói" `clarify` thay vì gọi nó. Có thể vì tool này mang nghĩa *nói với người dùng*. Lỗi này nằm ở tầng model/serving. 4 vòng prompt đã không đẩy được nó. Ghi chú: từ v1 trở đi, model chưa bao giờ gửi Telegram khi chưa xác nhận, nên guardrail vẫn giữ được.
+Kết luận có bằng chứng: Ollama bỏ qua `tool_choice="required"`, và qwen2.5:7b đặc biệt hay "nói" `clarify` thay vì gọi nó. Có thể vì tool này mang nghĩa *nói với người dùng*. Lỗi này nằm ở tầng model/serving. 4 vòng prompt đã không đẩy được nó. Ghi chú: ở base suite, từ v1 trở đi model không gọi `send` khi chưa xác nhận. Ngoại lệ duy nhất trong mọi run là GM02 (B3), khi model gọi `send(confirmed=false)` sau lúc user đã từ chối. Code chặn lại (trả `needs_confirmation`), nên không có tin nào bị gửi.
 
 ## B3. Team Eval Cases
 
@@ -178,7 +178,7 @@ Transcript: `transcripts/v3.2_ollama_20261110T145431960071.transcript.json` (`ch
 | send (Telegram) | transcript lượt 4–5; GM01, GM02 trong group run | Không lần nào gửi trước khi xác nhận (base R12 + group G05 + chat lượt 4); gửi đúng sau "Có" (GM01, chat lượt 5) | Model có thể gửi text placeholder. Cần đưa đúng nội dung vào câu xác nhận. Đã sửa bug `confirmed="false"` (chuỗi) từng **thực sự gửi** |
 | 4 tool mới: wikipedia, hackernews, github, cite | `tools/<name>/TOOL.md`, `tools/__init__.py`, `artifacts/tools.yaml`; G01–G04, GM04; chat lượt 1 | 5/5 case routing tới tool mới PASS. Cả 4 tool gọi API thật thành công, không cần key | `cite` gắn Tier 3 "unverified" cho x.com/HN/reddit theo citation policy; item thiếu URL → warning |
 | arXiv / company policy | tools.yaml mô tả `policy_area` từng nhóm; GM06 | Mô tả `policy_area` rõ cho từng nhóm | GM06 bị clarify thừa (xem B3) |
-| UI | `app.py` (Streamlit). Kiểm bằng `streamlit.testing.AppTest`: 0 exception; server `/_stcore/health` = ok | Chọn provider (Ollama mặc định, OpenRouter nếu có key), câu hỏi mẫu, expander hiện từng tool call + JSON kết quả, ghi transcript `*_ui_*.transcript.json` | Link public: `cloudflared tunnel --url http://localhost:8501` lúc demo |
+| UI | `app.py` (Streamlit). Kiểm bằng `streamlit.testing.AppTest`: 0 exception; server `/_stcore/health` = ok | Chọn provider: hiện provider cloud nào có key trong `.env` (demo dùng `openai`/`gpt-4o-mini`), luôn có thêm `ollama`, câu hỏi mẫu, expander hiện từng tool call + JSON kết quả, ghi transcript `*_ui_*.transcript.json` | Link public: `cloudflared tunnel --url http://localhost:8501` lúc demo |
 | Tool unit tests (`tests/`) | `pytest` → **135 passed, 0 skipped, 0 failed**; trước khi sửa: `analysis/pytest_before_bugfix.txt` (8 failed / 107 passed) | Điền hết stub TODO + 13 test / 4 tool mới (happy path; input xấu: chuỗi rỗng / sai kiểu / ngoài enum / limit chuỗi-âm-quá lớn; nhánh lỗi 403/404/429/503/timeout) | Mọi test offline (fake_http) |
 
 **Bug tìm được trong tool có sẵn (đã sửa, giữ regression test):**

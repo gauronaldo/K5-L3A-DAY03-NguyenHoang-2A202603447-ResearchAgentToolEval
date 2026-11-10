@@ -56,7 +56,11 @@ st.set_page_config(page_title="Research Agent", page_icon="🔎", layout="wide")
 with st.sidebar:
     st.header("Cấu hình")
     provider_name = st.selectbox("Provider", available_providers())
-    default_model = {"ollama": os.getenv("OLLAMA_MODEL", "qwen2.5:7b"), "openrouter": "openai/gpt-4o-mini"}.get(provider_name, "")
+    default_model = {
+        "ollama": os.getenv("OLLAMA_MODEL", "qwen2.5:7b"),
+        "openrouter": "openai/gpt-4o-mini",
+        "openai": "gpt-4o-mini",
+    }.get(provider_name, "")
     model = st.text_input("Model", value=default_model) or None
     version = st.text_input("Version label", value="v3.2-ui")
     max_rounds = st.slider("Max tool rounds", 1, 6, 4)
