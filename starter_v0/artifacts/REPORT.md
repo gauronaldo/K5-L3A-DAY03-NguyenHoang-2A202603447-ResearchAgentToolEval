@@ -8,7 +8,7 @@
 
 - Team: 2 thành viên (chi tiết trong `TEAM.md`)
 - Members: Nguyễn Hoàng (2A202603447), Nguyễn Phú Nam (2A202603501)
-- Provider/model: Ollama `qwen2.5:7b` (local, CPU). Không có key cloud nên mọi run v0–v3 đều chạy trên model này; OpenRouter vẫn dùng được bằng cách thêm `OPENROUTER_API_KEY` vào `.env`.
+- Provider/model: vòng tối ưu v0→v3.2 chạy trên Ollama `qwen2.5:7b` (local, CPU). Sau đó kiểm chứng trên cloud bằng OpenAI `gpt-4o-mini`: v3.2 đạt **1.00** ở base, group và extension. Bonus local dùng `llama3.2:3b`.
 
 ---
 
@@ -57,7 +57,7 @@ Research agent cho tin AI/tech: tìm tin theo chủ đề hoặc theo tài kho�
 
 # PHẦN B — Chi tiết / Bằng chứng
 
-> Mọi số liệu lấy từ `runs/*.json` và `artifacts/version_log.csv`. Model chính: Ollama `qwen2.5:7b`, CPU-only, temperature 0, context 4096 (prompt + 14 tool = 2874 token, đo bằng `scripts/measure_prompt_tokens.py`). Không có key cloud nên **không có run cloud**. Tool cần key (lookup/fetch/timeline/social_search/send) trả error dict khi thực thi, nhưng eval chấm trên tool call + args nên không ảnh hưởng điểm.
+> Mọi số liệu lấy từ `runs/*.json` và `artifacts/version_log.csv`. Model chính: Ollama `qwen2.5:7b`, CPU-only, temperature 0, context 4096 (prompt + 14 tool = 2874 token, đo bằng `scripts/measure_prompt_tokens.py`). Khi có key, kiểm chứng trên cloud bằng OpenAI `gpt-4o-mini` (bảng "Cloud" bên dưới). Tool cần key (lookup/fetch/timeline/social_search/send) trả error dict khi thực thi, nhưng eval chấm trên tool call + args nên không ảnh hưởng điểm.
 > Bảng flat cho từng case: `analysis/all_runs.csv` (tạo bằng `scripts/parse_runs.py`). Xem nhanh case fail: `python scripts/show_failures.py runs/<file>.json`.
 
 ## B1. Version Evidence
@@ -73,6 +73,19 @@ Research agent cho tin AI/tech: tìm tin theo chủ đề hoặc theo tài kho�
 | v3.2 group | – (suite nhóm) | Đo routing tool mới và boundary send ngoài base | – | 0.73 / 0.73 / 0.73 / 0.67 | `runs/v3.2_B_group_ollama_20261110T145357059055.json` |
 
 Hai bước tăng lớn: **sửa prompt (+45 điểm)** và **sửa tool description (+10 điểm)**. Sau v2, 3 vòng tiếp theo không cải thiện thêm. Log cho thấy lý do: 3 case còn lại đều là lỗi phát tool call của model (xem B2), không phải lỗi routing. v3.2 được chọn làm bản cuối dù cùng điểm với v2: trong chat live, nó không đọc to "invoke tool clarify…" ra cho người dùng như v3/v3.1.
+
+**Cloud: cùng artifact, provider OpenAI `gpt-4o-mini`**
+
+| Version | Prompt/Tools | Suite | case / routing / args / multiturn | Run File |
+|---|---|---|---:|---|
+| v0-cloud | starter gốc (`artifacts/starter_v0_original/*`, hash khớp v0: `eb1c8179815b` / `5b22a2476d41`) | base | 0.70 / 0.75 / 0.70 / 1.00 | `runs/v0-cloud_B_base_openai_20261110T164258380592.json` |
+| v3.2-cloud | v3.2 | base | **1.00 / 1.00 / 1.00 / 1.00** | `runs/v3.2-cloud_B_base_openai_20261110T163925400124.json` |
+| v3.2-cloud | v3.2 | group (11) | **1.00** / 1.00 / 1.00 / 1.00 | `runs/v3.2-cloud_B_group_openai_20261110T164002433316.json` |
+| v3.2-cloud | v3.2 | extension (10) | **1.00** / 1.00 / 1.00 / – | `runs/v3.2-cloud_B_extension_openai_20261110T164218351637.json` |
+
+- **v0 trên cloud lặp lại đúng các lỗi do prompt starter gây ra:** R08 và R14 gọi `send` để **đăng lời giải toán và code Fibonacci lên Telegram**, R10 đoán `sama`, R11 bịa `https://example.com/article`, R12 gửi mà không xác nhận. Model mạnh hơn không tự sửa được prompt xấu.
+- **v3.2 trên cloud đạt 20/20.** Ba case R10/R11/R12 mà qwen7b không qua được đều ra `clarify` đúng dạng tool call. Như vậy phần còn lại ở v3.2 là giới hạn của qwen2.5:7b/Ollama, không phải lỗi prompt. Suite nhóm cũng đạt 11/11, kể cả G05, GM02 và GM06.
+- **Độ ổn định:** hai lần chạy v0-cloud có nội dung y hệt (chỉ khác CRLF/LF nên hash khác) cho 0.65 và 0.70. OpenAI ở temperature 0 vẫn dao động nhẹ, còn Ollama qwen7b chạy lặp v1 thì giống hệt.
 
 ## B2. Failure Analysis
 
@@ -165,19 +178,22 @@ Transcript: `transcripts/v3.2_ollama_20261110T145431960071.transcript.json` (`ch
 - **Fix thuộc `tools.yaml`:** convention args sát với từng param (`topic=news` khi có chữ "tin", `timeframe` day/week/month/year, handle không `@`, `Top` = phổ biến, `sort=stars`), cùng các câu "khi nào KHÔNG dùng". v2 sửa hết lỗi args (R06, M02) và đưa multiturn lên 1.0.
 - **Bài học bất ngờ:** với qwen2.5:7b qua Ollama, **few-shot viết inline bị model chép thành text**. Hai lần chạy, hai định dạng ví dụ khác nhau, đều cho cùng hiện tượng. Đồng thời, thêm cụm từ kích hoạt vào description `clarify` gây tác dụng phụ ở case khác (GM06). Mỗi rule mới cần một case "phản ví dụ".
 - **Cần review thủ công:** câu trả lời text của R11/R12 *đúng ý* (có hỏi lại / xin xác nhận) nhưng bị chấm FAIL vì không phải tool call. Nội dung `send` ở chat lượt 5 là placeholder bịa: eval không đo, chỉ đọc transcript mới thấy. Lượt 2 đoán account "hackernews" từ ngữ cảnh: chỉ chat nhiều lượt thật mới lộ ra.
-- **Cải thiện tiếp:** (1) chạy lại v3.2 trên model cloud (OpenRouter `gpt-4o-mini`) để tách lỗi model khỏi lỗi prompt; (2) trong harness Ollama, coi text dạng `clarify(...)` hoặc một câu hỏi thuần là "pause cho user" ở tầng UI (không đổi chấm điểm); (3) bắt câu xác nhận yes/no phải trích đúng nội dung sẽ gửi; (4) thêm case phản ví dụ "hỏi policy về đăng bài" vào base để chống tác dụng phụ kiểu GM06.
+- **Tách lỗi model khỏi lỗi prompt:** chạy cùng artifact v3.2 trên `gpt-4o-mini` được 1.00. Ba case fail trên qwen7b vì vậy là giới hạn model/serving. Không nên tiếp tục "vá prompt" cho chúng, vì v3/v3.1 cho thấy vá thêm còn gây hại.
+- **Cải thiện tiếp:** (1) gộp description có ví dụ JSON của `tools_local.yaml` vào bản 14 tool rồi đo lại trên cả hai model; (2) trong harness Ollama, coi text dạng `clarify(...)` hoặc một câu hỏi thuần là "pause cho user" ở tầng UI (không đổi chấm điểm); (3) bắt câu xác nhận yes/no phải trích đúng nội dung sẽ gửi; (4) thêm case phản ví dụ "hỏi policy về đăng bài" vào base để chống tác dụng phụ kiểu GM06.
 
 ## B7. Small Local Model Challenge (bonus)
 
-Không có model cloud. Model "lớn" ở đây là qwen2.5:7b, nơi đã tối ưu v0→v3.2; model nhỏ là llama3.2:3b. Cả hai chạy qua Ollama, CPU, context 4096. llama3.2:3b gốc **làm Ollama treo 2 lần** ở R09: model sinh text không dừng, runner kẹt "Stopping…". Vì vậy mọi run 3B dùng biến thể `llama3.2-3b-capped` (`artifacts/Modelfile.llama3.2-3b-capped`, chỉ thêm `num_predict 512`; không đổi trọng số hay template). Prompt/tools riêng cho local: `artifacts/system_prompt_local.md`, `artifacts/tools_local.yaml`.
+Cloud là OpenAI `gpt-4o-mini`. Hai model local là qwen2.5:7b (nơi đã tối ưu v0→v3.2) và llama3.2:3b. Cả hai model local chạy qua Ollama, CPU, context 4096. llama3.2:3b gốc **làm Ollama treo 2 lần** ở R09: model sinh text không dừng, runner kẹt "Stopping…". Vì vậy mọi run 3B dùng biến thể `llama3.2-3b-capped` (`artifacts/Modelfile.llama3.2-3b-capped`, chỉ thêm `num_predict 512`; không đổi trọng số hay template). Prompt/tools riêng cho local: `artifacts/system_prompt_local.md`, `artifacts/tools_local.yaml`.
 
 | Version | Model (provider) | Prompt/Tools | case_accuracy | tool_routing | argument | multiturn | Run File |
 |---|---|---|---|---|---|---|---|
-| v3.2 | qwen2.5:7b (ollama), thay cho cloud | v3.2 / tools.yaml (14 tool) | 0.85 | 0.85 | 0.85 | 1.00 | `runs/v3.2_B_base_ollama_20261110T145043891036.json` |
+| v3.2-cloud | **gpt-4o-mini (openai, cloud)** | v3.2 / tools.yaml (14 tool) | **1.00** | 1.00 | 1.00 | 1.00 | `runs/v3.2-cloud_B_base_openai_20261110T163925400124.json` |
+| v3.2 | qwen2.5:7b (ollama) | v3.2 / tools.yaml (14 tool) | 0.85 | 0.85 | 0.85 | 1.00 | `runs/v3.2_B_base_ollama_20261110T145043891036.json` |
 | v3-llama3b | llama3.2:3b capped (ollama) | v3.2 / tools.yaml | 0.60 | 0.80 | 0.60 | 0.83 | `runs/v3-llama3b_B_base_ollama_20261110T155245440759.json` |
 | v4-local | llama3.2:3b capped | **system_prompt_local.md** (9 rule) / tools.yaml | **0.40** | 0.65 | 0.40 | 0.67 | `runs/v4-local_B_base_ollama_20261110T155701992552.json` |
 | v5-local | llama3.2:3b capped | system_prompt_local.md / **tools_local.yaml** (7 tool, ví dụ JSON) | 0.60 | 0.70 | 0.60 | 0.67 | `runs/v5-local_B_base_ollama_20261110T155901522700.json` |
 | v5-local-qwen7b (kiểm tra ngược) | qwen2.5:7b | system_prompt_local.md / tools_local.yaml | 0.85 | 0.85 | 0.85 | 1.00 | `runs/v5-local-qwen7b_B_base_ollama_20261110T160527343099.json` |
+| v5-local-cloud (kiểm tra ngược) | gpt-4o-mini (openai) | system_prompt_local.md / tools_local.yaml | 0.90 | 0.90 | 0.90 | 0.83 | `runs/v5-local-cloud_B_base_openai_20261110T164027590628.json` |
 
 Lỗi đặc thù của model nhỏ (đếm bằng `scripts/count_failure_patterns.py`; một case có thể thuộc nhiều nhóm):
 
@@ -192,5 +208,6 @@ Lỗi đặc thù của model nhỏ (đếm bằng `scripts/count_failure_patter
 | repeated / unnecessary calls | 0 → 0 → 0 → 0 | – | – | – |
 
 - **Cái gì giúp model nhỏ gọi tool đúng hơn nhất?** **Ví dụ JSON args nằm trong chính description của tool, cùng ít tool nhiễu hơn** (v4 0.40 → v5 0.60). Bằng chứng: R03/R06/R13/M02 (args timeframe/topic) và R12 chỉ PASS ở v5. Ngược với gợi ý ban đầu, **rút gọn system prompt lại làm hại** (0.60 → 0.40): model mất convention args, và vì không còn rule out-of-scope chi tiết nên bị ví dụ của các tool khác "hút" vào.
-- **Bản prompt tối ưu cho local chạy trên model lớn hơn thì sao?** Giữ 0.85 trên qwen7b, không giảm, nhưng tập lỗi khác: R12 được sửa (điều 4 vòng tối ưu cho bản chính không làm được), đổi lại R13 hỏng vì thiếu `social_search` rule chi tiết. Hướng gộp hợp lý: lấy description có ví dụ JSON của `tools_local.yaml` ghép vào bản 14 tool, giữ system prompt dài của v3.2. Bản này chưa chạy, là việc làm tiếp.
+- **Bản prompt tối ưu cho local chạy trên model cloud thì sao?** **Điểm giảm: 1.00 → 0.90.** R11 gọi `fetch(url="https://example.com/post")`, tức **ngay cả gpt-4o-mini cũng chép URL mẫu** trong description của `tools_local.yaml`. M06 gọi thừa `social_search` vì prompt ngắn thiếu rule "bỏ Twitter". Trên qwen7b, bản local giữ 0.85 nhưng tập lỗi khác: R12 được sửa (điều 4 vòng tối ưu cho bản chính không làm được), đổi lại R13 hỏng. **Chưa có một bản prompt dùng tốt cho cả hai:** v3.2 là tốt nhất cho cloud (1.00) và qwen7b (0.85); v5-local tốt nhất cho llama3b. Ví dụ args trong description giúp model nhỏ, nhưng phải dùng giá trị không thể bị chép nguyên (ví dụ `<url từ user>` thay vì URL thật).
+- **Tốc độ:** một run base 20 case trên gpt-4o-mini mất khoảng 35 giây, so với khoảng 15–20 phút trên qwen7b và khoảng 7 phút trên llama3b (CPU, 7.4 GB RAM). Một lượt chat UI có tool trên qwen7b mất 4–6 phút vì máy phải swap model ra ổ đĩa.
 - **Khi nào chọn model local?** Khi dữ liệu không được rời máy (policy `data_privacy`), hoặc để chạy eval lặp miễn phí. Không chọn cho flow có hành động ghi (`send`): model 3B đã tự in JSON `send` với nội dung rác, và không chịu "không gọi tool". Với model nhỏ, guardrail **phải nằm trong code** (như `confirmed` chỉ nhận `True`), không thể chỉ dựa vào prompt.
