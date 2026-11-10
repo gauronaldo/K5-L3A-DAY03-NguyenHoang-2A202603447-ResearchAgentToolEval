@@ -24,7 +24,7 @@ Research agent cho tin AI/tech: tìm tin theo chủ đề hoặc theo tài kho�
 
 > Chạy `streamlit run app.py` rồi `cloudflared tunnel --url http://localhost:8501`. Link `trycloudflare.com` chỉ sống theo phiên, nên dán vào đây lúc demo.
 >
-> URL: (tạo khi demo)
+> URL: https://hopefully-workstation-carries-daniel.trycloudflare.com (Cloudflare quick tunnel, tạo 2026-11-10 16:57; chỉ sống khi `cloudflared` còn chạy)
 
 ## A2. Tool agent có
 
